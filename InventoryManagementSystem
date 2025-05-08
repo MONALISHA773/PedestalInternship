@@ -1,0 +1,219 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <map>
+#include <limits>
+
+using namespace std;
+
+// Product class representing a single product in the inventory
+class Product {
+public:
+    int id;
+    string name;
+    double price;
+    int quantity;
+
+    // Constructor to initialize a product
+    Product(int id, string name, double price, int quantity)
+        : id(id), name(name), price(price), quantity(quantity) {}
+
+    // Function to display product details
+    void displayProduct() const {
+        cout << "ID: " << id << ", Name: " << name << ", Price: " << price
+             << ", Quantity: " << quantity << endl;
+    }
+};
+
+// Inventory class managing the list of products
+class Inventory {
+private:
+    vector<Product> products;
+    const string filename = "inventory_data.txt";  // File to store product data
+
+public:
+    Inventory() {
+        // Load data from file if available
+        loadFromFile();
+    }
+
+    // Function to add a new product to the inventory
+    void addProduct(int id, string name, double price, int quantity) {
+        Product newProduct(id, name, price, quantity);
+        products.push_back(newProduct);
+        saveToFile();
+        cout << "Product added successfully.\n";
+    }
+
+    // Function to display all products in the inventory
+    void viewProducts() const {
+        if (products.empty()) {
+            cout << "No products in the inventory.\n";
+            return;
+        }
+
+        cout << "Products in the inventory:\n";
+        for (const auto& product : products) {
+            product.displayProduct();
+        }
+    }
+
+    // Function to update the stock of a product
+    void updateStock(int id, int quantity) {
+        bool found = false;
+        for (auto& product : products) {
+            if (product.id == id) {
+                product.quantity += quantity;
+                found = true;
+                saveToFile();
+                cout << "Stock updated successfully.\n";
+                break;
+            }
+        }
+        if (!found) {
+            cout << "Product not found.\n";
+        }
+    }
+
+    // Function to search for a product by ID
+    void searchProduct(int id) const {
+        bool found = false;
+        for (const auto& product : products) {
+            if (product.id == id) {
+                product.displayProduct();
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            cout << "Product not found.\n";
+        }
+    }
+
+    // Function to display low stock alert
+    void lowStockAlert(int threshold) const {
+        bool alertFound = false;
+        cout << "Low stock alert (below threshold " << threshold << "):\n";
+        for (const auto& product : products) {
+            if (product.quantity <= threshold) {
+                product.displayProduct();
+                alertFound = true;
+            }
+        }
+        if (!alertFound) {
+            cout << "No low stock products.\n";
+        }
+    }
+
+private:
+    // Function to save inventory data to a file
+    void saveToFile() const {
+        ofstream file(filename, ios::trunc);
+        if (!file) {
+            cout << "Error opening file for saving.\n";
+            return;
+        }
+
+        for (const auto& product : products) {
+            file << product.id << " " << product.name << " "
+                 << product.price << " " << product.quantity << endl;
+        }
+
+        file.close();
+    }
+
+    // Function to load inventory data from a file
+    void loadFromFile() {
+        ifstream file(filename);
+        if (!file) {
+            cout << "No previous data found. Starting with an empty inventory.\n";
+            return;
+        }
+
+        int id;
+        string name;
+        double price;
+        int quantity;
+        while (file >> id >> name >> price >> quantity) {
+            products.push_back(Product(id, name, price, quantity));
+        }
+
+        file.close();
+    }
+};
+
+// Main function
+int main() {
+    Inventory inventory;
+    int choice;
+
+    while (true) {
+        cout << "\nInventory Management System\n";
+        cout << "1. Add Product\n";
+        cout << "2. View Products\n";
+        cout << "3. Update Stock\n";
+        cout << "4. Search Product\n";
+        cout << "5. Low Stock Alert\n";
+        cout << "6. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        int id, quantity;
+        string name;
+        double price;
+        switch (choice) {
+            case 1:
+                // Add product
+                cout << "Enter product ID: ";
+                cin >> id;
+                cin.ignore();
+                cout << "Enter product name: ";
+                getline(cin, name);
+                cout << "Enter product price: ";
+                cin >> price;
+                cout << "Enter product quantity: ";
+                cin >> quantity;
+                inventory.addProduct(id, name, price, quantity);
+                break;
+
+            case 2:
+                // View products
+                inventory.viewProducts();
+                break;
+
+            case 3:
+                // Update stock
+                cout << "Enter product ID: ";
+                cin >> id;
+                cout << "Enter quantity to add/subtract: ";
+                cin >> quantity;
+                inventory.updateStock(id, quantity);
+                break;
+
+            case 4:
+                // Search product
+                cout << "Enter product ID: ";
+                cin >> id;
+                inventory.searchProduct(id);
+                break;
+
+            case 5:
+                // Low stock alert
+                cout << "Enter stock threshold: ";
+                cin >> quantity;
+                inventory.lowStockAlert(quantity);
+                break;
+
+            case 6:
+                // Exit
+                cout << "Exiting the system.\n";
+                return 0;
+
+            default:
+                cout << "Invalid choice. Please try again.\n";
+        }
+    }
+
+    return 0;
+}
