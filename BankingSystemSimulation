@@ -1,0 +1,216 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <ctime>
+
+using namespace std;
+
+// Class to represent a Customer
+class Customer {
+private:
+    string name;
+    string address;
+    string phoneNumber;
+
+public:
+    Customer(string name, string address, string phoneNumber)
+        : name(name), address(address), phoneNumber(phoneNumber) {}
+
+    // Getter functions to access customer information
+    string getName() const { return name; }
+    string getAddress() const { return address; }
+    string getPhoneNumber() const { return phoneNumber; }
+};
+
+// Class to represent an Account
+class Account {
+private:
+    int accountNumber;
+    double balance;
+    vector<string> transactionHistory;
+    Customer customer;
+
+public:
+    Account(int accountNumber, double initialDeposit, Customer customer)
+        : accountNumber(accountNumber), balance(initialDeposit), customer(customer) {
+        string transaction = "Account created with initial deposit: " + to_string(initialDeposit);
+        transactionHistory.push_back(transaction);
+    }
+
+    // Deposit function
+    void deposit(double amount) {
+        if (amount > 0) {
+            balance += amount;
+            recordTransaction("Deposited: " + to_string(amount));
+            cout << "Deposited " << amount << " successfully.\n";
+        } else {
+            cout << "Invalid deposit amount.\n";
+        }
+    }
+
+    // Withdrawal function
+    void withdraw(double amount) {
+        if (amount > 0 && amount <= balance) {
+            balance -= amount;
+            recordTransaction("Withdrew: " + to_string(amount));
+            cout << "Withdrew " << amount << " successfully.\n";
+        } else {
+            cout << "Invalid withdrawal amount or insufficient funds.\n";
+        }
+    }
+
+    // Balance check function
+    double getBalance() const {
+        return balance;
+    }
+
+    // Transaction history function
+    void printTransactionHistory() const {
+        if (transactionHistory.empty()) {
+            cout << "No transactions made yet.\n";
+            return;
+        }
+        cout << "Transaction History for Account " << accountNumber << ":\n";
+        for (const string &transaction : transactionHistory) {
+            cout << transaction << endl;
+        }
+    }
+
+    // Function to get account details
+    void getAccountDetails() const {
+        cout << "\nAccount Number: " << accountNumber << endl;
+        cout << "Customer Name: " << customer.getName() << endl;
+        cout << "Balance: " << balance << endl;
+    }
+
+private:
+    // Helper function to record transactions
+    void recordTransaction(const string &transaction) {
+        transactionHistory.push_back(transaction);
+    }
+};
+
+// Bank class to manage accounts
+class Bank {
+private:
+    vector<Account> accounts;
+
+public:
+    // Function to create a new account
+    void createAccount(int accountNumber, double initialDeposit, Customer customer) {
+        Account newAccount(accountNumber, initialDeposit, customer);
+        accounts.push_back(newAccount);
+        cout << "Account created successfully.\n";
+    }
+
+    // Function to find an account by account number
+    Account* findAccount(int accountNumber) {
+        for (auto &account : accounts) {
+            if (accountNumber == account.getAccountDetails()) {
+                return &account;
+            }
+        }
+        return nullptr;
+    }
+};
+
+int main() {
+    Bank bank;
+    int choice;
+    
+    while (true) {
+        cout << "\nBanking System Menu:\n";
+        cout << "1. Create Account\n";
+        cout << "2. Deposit\n";
+        cout << "3. Withdraw\n";
+        cout << "4. Check Balance\n";
+        cout << "5. View Transaction History\n";
+        cout << "6. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        int accountNumber;
+        double amount;
+        string name, address, phoneNumber;
+
+        switch (choice) {
+            case 1:
+                // Create a new account
+                cout << "Enter account number: ";
+                cin >> accountNumber;
+                cin.ignore(); // To ignore the newline left by previous input
+                cout << "Enter customer name: ";
+                getline(cin, name);
+                cout << "Enter customer address: ";
+                getline(cin, address);
+                cout << "Enter customer phone number: ";
+                getline(cin, phoneNumber);
+
+                Customer newCustomer(name, address, phoneNumber);
+                bank.createAccount(accountNumber, 1000.0, newCustomer); // Initial deposit of 1000
+                break;
+
+            case 2:
+                // Deposit to an account
+                cout << "Enter account number: ";
+                cin >> accountNumber;
+                Account* depositAccount = bank.findAccount(accountNumber);
+                if (depositAccount) {
+                    cout << "Enter deposit amount: ";
+                    cin >> amount;
+                    depositAccount->deposit(amount);
+                } else {
+                    cout << "Account not found.\n";
+                }
+                break;
+
+            case 3:
+                // Withdraw from an account
+                cout << "Enter account number: ";
+                cin >> accountNumber;
+                Account* withdrawAccount = bank.findAccount(accountNumber);
+                if (withdrawAccount) {
+                    cout << "Enter withdrawal amount: ";
+                    cin >> amount;
+                    withdrawAccount->withdraw(amount);
+                } else {
+                    cout << "Account not found.\n";
+                }
+                break;
+
+            case 4:
+                // Check balance
+                cout << "Enter account number: ";
+                cin >> accountNumber;
+                Account* balanceAccount = bank.findAccount(accountNumber);
+                if (balanceAccount) {
+                    cout << "Current balance: " << balanceAccount->getBalance() << endl;
+                } else {
+                    cout << "Account not found.\n";
+                }
+                break;
+
+            case 5:
+                // View transaction history
+                cout << "Enter account number: ";
+                cin >> accountNumber;
+                Account* historyAccount = bank.findAccount(accountNumber);
+                if (historyAccount) {
+                    historyAccount->printTransactionHistory();
+                } else {
+                    cout << "Account not found.\n";
+                }
+                break;
+
+            case 6:
+                // Exit
+                cout << "Exiting the banking system.\n";
+                return 0;
+
+            default:
+                cout << "Invalid choice. Please try again.\n";
+        }
+    }
+
+    return 0;
+}
